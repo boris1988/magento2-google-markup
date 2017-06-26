@@ -11,7 +11,7 @@ $jsonLd = $block->getJsonLd();
     <script>
         define(["jquery"], function ($) {
             $.ajax({
-                url: <?php echo $block->escapeUrl($block->getAjaxUrl()); ?>,
+                url: "<?php echo $block->escapeUrl($block->getAjaxUrl()); ?>",
                 type: 'post',
                 dataType: 'json',
                 cache: false,
