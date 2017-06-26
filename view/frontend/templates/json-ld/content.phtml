@@ -1,1 +1,17 @@
-1111111111111111111
+<?php
+/**
+ * @var \Borisperevyazko\GoogleMarkup\Block\JsonLd $block
+ */
+?>
+<?php
+/** @var \Borisperevyazko\GoogleMarkup\Api\JsonLdTypeInterface $jsonLd */
+$jsonLd = $block->getJsonLd();
+?>
+<?php if (null !== $jsonLd): ?>
+    <script type="application/ld+json">
+    {
+     "@context": "<?php echo $block->escapeQuote($jsonLd->getContext());?>",
+     "@type": "<?php echo $block->escapeQuote($jsonLd->getType());?>",
+    }
+    </script>
+<?php endif; ?>
