@@ -8,8 +8,12 @@ use Magento\Framework\App\Request\Http as HttpRequest;
 
 class JsonLd extends Template
 {
-
     protected $jsonLd;
+
+    /**
+     * @var HttpRequest
+     */
+    protected $request;
 
     public function __construct(
         HttpRequest $request,
@@ -18,6 +22,11 @@ class JsonLd extends Template
     ) {
         $this->request = $request;
         parent::__construct($context, $data);
+    }
+
+    public function getAjaxUrl()
+    {
+        return $this->_urlBuilder->getUrl("googlemarkup/ajax/jsonld");
     }
 
     protected function _beforeToHtml()
