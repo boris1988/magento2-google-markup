@@ -14,7 +14,7 @@
       "registration.php"
     ],
     "psr-4": {
-      "Borisperevyazko\\Lazyload\\": ""
+      "Borisperevyazko\\GoogleMarkup\\": ""
     }
   }
 }
