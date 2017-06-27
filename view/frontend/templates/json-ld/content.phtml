@@ -9,25 +9,16 @@ $jsonLd = $block->getJsonLd();
 ?>
 
     <script>
-        define(["jquery"], function ($) {
+        require(["jquery"], function ($) {
             $.ajax({
                 url: "<?php echo $block->escapeUrl($block->getAjaxUrl()); ?>",
                 type: 'post',
                 dataType: 'json',
                 cache: false,
-                data: data,
+                data: <?php /* @noEscape */ echo $block->getPostData(); ?>,
                 success: function(data) {
-
                 },
                 complete: function() {}
             });
         });
     </script>
-<?php if (null !== $jsonLd): ?>
-    <script type="application/ld+json">
-    {
-     "@context": "<?php echo $block->escapeQuote($jsonLd->getContext());?>",
-     "@type": "<?php echo $block->escapeQuote($jsonLd->getType());?>",
-    }
-    </script>
-<?php endif; ?>

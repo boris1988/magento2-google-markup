@@ -7,14 +7,14 @@ interface JsonLdTypeInterface
     /**
      * Add type
      *
-     * @return void
+     * @return $this
      */
     public function addType();
 
     /**
      * Add context
      *
-     * @return void
+     * @return $this
      */
     public function addContext();
 
@@ -26,7 +26,7 @@ interface JsonLdTypeInterface
     public function getContext();
 
     /**
-     * @return string
+     * @return mixed
      */
     public function getType();
 
@@ -35,7 +35,21 @@ interface JsonLdTypeInterface
      *
      * @param string $key
      * @param string|array $value
-     * @return void
+     * @return $this
      */
     public function addProperty($key, $value);
+
+    /**
+     * Init markup object
+     *
+     * @return $this
+     */
+    public function initProperties();
+
+    /**
+     * Get markup object
+     *
+     * @return array
+     */
+    public function getProperties();
 }
