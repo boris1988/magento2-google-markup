@@ -2,6 +2,11 @@
 
 namespace Borisperevyazko\GoogleMarkup\Api;
 
+/**
+ * Interface JsonLdTypeInterface
+ *
+ * @author Boris Perevyazko <borisperevyazko@gmail.com>
+ */
 interface JsonLdTypeInterface
 {
     /**

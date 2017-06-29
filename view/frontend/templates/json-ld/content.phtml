@@ -3,22 +3,23 @@
  * @var \Borisperevyazko\GoogleMarkup\Block\JsonLd $block
  */
 ?>
-<?php
-/** @var \Borisperevyazko\GoogleMarkup\Api\JsonLdTypeInterface $jsonLd */
-$jsonLd = $block->getJsonLd();
-?>
-
-    <script>
-        require(["jquery"], function ($) {
-            $.ajax({
-                url: "<?php echo $block->escapeUrl($block->getAjaxUrl()); ?>",
-                type: 'post',
-                dataType: 'json',
-                cache: false,
-                data: <?php /* @noEscape */ echo $block->getPostData(); ?>,
-                success: function(data) {
-                },
-                complete: function() {}
-            });
+<script>
+    require(["jquery"], function ($) {
+        $.ajax({
+            url: "<?php echo $block->escapeUrl($block->getAjaxUrl()); ?>",
+            type: 'post',
+            dataType: 'json',
+            data: <?php /* @noEscape */ echo $block->getPostData(); ?>,
+            success: function(data) {
+                if (data.success) {
+                    var head=document.getElementsByTagName("head")[0];
+                    var s = document.createElement('script');
+                    s.type = 'application/ld+json';
+                    s.text = JSON.stringify(data.properies);
+                    head.appendChild(s);
+                }
+            },
+            complete: function() {}
         });
-    </script>
+    });
+</script>

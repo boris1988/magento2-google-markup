@@ -9,12 +9,16 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\Controller\Result\JsonFactory;
 
-use Borisperevyazko\GoogleMarkup\Api\JsonLdTypeInterface;
-
+/**
+ * Class JsonLd
+ *
+ * @author Boris Perevyazko <borisperevyazko@gmail.com>
+ */
 class JsonLd extends Action
 {
 
     const DEFINE_POST_PARAM = 'fullActionName';
+
     /**
      * @var JsonFactory
      */
@@ -30,6 +34,14 @@ class JsonLd extends Action
      */
     protected $repositoryInterface;
 
+    /**
+     * JsonLd constructor
+     *
+     * @param Context $context
+     * @param JsonFactory $resultJsonFactory
+     * @param HttpRequest $request
+     * @param MarkupRepositoryInterface $repositoryInterface
+     */
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
@@ -43,12 +55,17 @@ class JsonLd extends Action
         $this->repositoryInterface = $repositoryInterface;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function execute()
     {
+        /** @var \Borisperevyazko\GoogleMarkup\Api\JsonLdTypeInterface $jsonLd */
         $jsonLd = $this->repositoryInterface->load($this->request->getParam(static::DEFINE_POST_PARAM));
+        
         $data = ['success' => false];
         if (null !== $jsonLd) {
-            $data['success'] = false;
+            $data['success'] = true;
             $data['properies'] = $this->repositoryInterface->getProperties($jsonLd);
         }
 

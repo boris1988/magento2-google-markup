@@ -2,8 +2,11 @@
 
 namespace Borisperevyazko\GoogleMarkup\Api;
 
-use Borisperevyazko\GoogleMarkup\Api\JsonLdTypeInterface;
-
+/**
+ * Interface MarkupRepositoryInterface
+ *
+ * @author Boris Perevyazko <borisperevyazko@gmail.com>
+ */
 interface MarkupRepositoryInterface
 {
     /**
@@ -13,7 +16,7 @@ interface MarkupRepositoryInterface
      * @return JsonLdTypeInterface
      */
     public function load($fullActionName);
-
+    
     /**
      * Get markup object
      *

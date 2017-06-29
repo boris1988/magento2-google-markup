@@ -4,16 +4,36 @@ namespace Borisperevyazko\GoogleMarkup\Model;
 
 use Borisperevyazko\GoogleMarkup\Api\JsonLdTypeInterface;
 
+/**
+ * Class AbstractType
+ *
+ * @author Boris Perevyazko <borisperevyazko@gmail.com>
+ */
 abstract class AbstractType implements JsonLdTypeInterface
 {
-    const DEFINE_CONTEXT_TYPE = "http://schema.org/";
 
+    const DEFINE_CONTEXT_TYPE = "http://schema.org/";
+    const DEFINE_CONTEXT_KEY = '@context';
+    const DEFINE_TYPE_KEY = '@type';
+
+    /**
+     * @var string
+     */
     protected $type;
 
+    /**
+     * @var string
+     */
     protected $context;
 
+    /**
+     * @var array
+     */
     protected $properties;
 
+    /**
+     * AbstractType constructor
+     */
     public function __construct()
     {
         $this->addContext();

@@ -5,14 +5,38 @@ namespace Borisperevyazko\GoogleMarkup\Model;
 use Borisperevyazko\GoogleMarkup\Api\JsonLdTypeInterface;
 use Borisperevyazko\GoogleMarkup\Api\MarkupRepositoryInterface;
 
+use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Framework\ObjectManagerInterface;
+
+/**
+ * Class MarkupRepository
+ *
+ * @author Boris Perevyazko <borisperevyazko@gmail.com>
+ */
 class MarkupRepository implements MarkupRepositoryInterface
 {
+    /**
+     * @var ObjectManagerInterface
+     */
     private $_objectManager;
 
+    /**
+     * @var HttpRequest
+     */
+    protected $request;
+
+    /**
+     * MarkupRepository constructor
+     *
+     * @param ObjectManagerInterface $objectmanager
+     * @param HttpRequest $request
+     */
     public function __construct(
-        \Magento\Framework\ObjectManagerInterface $objectmanager
+        ObjectManagerInterface $objectmanager,
+        HttpRequest $request
     ) {
         $this->_objectManager = $objectmanager;
+        $this->request = $request;
     }
 
     /**
@@ -23,7 +47,9 @@ class MarkupRepository implements MarkupRepositoryInterface
 
         switch ($fullActionName) {
             case 'catalog_product_view':
-                $jsonLd = $this->_objectManager->create('Borisperevyazko\GoogleMarkup\Model\ProductType');
+                $jsonLd = $this->_objectManager->create('Borisperevyazko\GoogleMarkup\Model\ProductType',
+                    ['data' => $this->request->getPostValue()]
+                );
                 break;
 
             default:
@@ -38,7 +64,7 @@ class MarkupRepository implements MarkupRepositoryInterface
      */
     public function getProperties(JsonLdTypeInterface $jsonLd)
     {
-        $jsonLd->initProperties()->getProperties();
+        return $jsonLd->initProperties()->getProperties();
     }
 
 }
