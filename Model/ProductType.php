@@ -4,7 +4,11 @@ namespace Borisperevyazko\GoogleMarkup\Model;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\ConfigurableProduct\Pricing\Price\PriceResolverInterface;
+use Magento\Framework\App\ObjectManager;
 use Magento\Catalog\Model\Product as CatalogProduct;
+use Magento\ConfigurableProduct\Pricing\Price\ConfigurableOptionsProviderInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Registry;
 use Magento\Framework\UrlInterface;
@@ -19,13 +23,23 @@ use Magento\Store\Model\StoreManagerInterface;
 class ProductType extends AbstractType
 {
 
-    const DEFINE_TYPE = 'Product';
-
-    const DEFINE_PRODUCT_NAME        = 'name';
-    const DEFINE_PRODUCT_DESCRIPTION = 'description';
-    const DEFINE_PRODUCT_IMAGE       = 'image';
-    const DEFINE_PRODUCT_BRAND       = 'brand';
-    const DEFINE_PRODUCT_SKU         = 'sku';
+    const DEFINE_TYPE                               = 'Product';
+    const DEFINE_PRODUCT_NAME                       = 'name';
+    const DEFINE_PRODUCT_DESCRIPTION                = 'description';
+    const DEFINE_PRODUCT_IMAGE                      = 'image';
+    const DEFINE_PRODUCT_BRAND                      = 'brand';
+    const DEFINE_PRODUCT_SKU                        = 'sku';
+    const DEFINE_PRODUCT_OFFERS                     = 'offers';
+    const DEFINE_PRODUCT_OFFERS_KEY                 = 'Offer';
+    const DEFINE_PRODUCT_AGGREGATEOFFERS_KEY        = 'AggregateOffer';
+    const DEFINE_PRODUCT_OFFERS_PRICE               = 'price';
+    const DEFINE_PRODUCT_OFFERS_LOW_PRICE           = 'lowPrice';
+    const DEFINE_PRODUCT_OFFERS_HIGH_PRICE          = 'highPrice';
+    const DEFINE_PRODUCT_OFFERS_CURRENCY            = 'priceCurrency';
+    const DEFINE_PRODUCT_OFFER_ITEM_CONDITION       = 'itemCondition';
+    const DEFINE_PRODUCT_OFFER_ITEM_CONDITION_VALUE = 'http://schema.org/NewCondition';
+    const DEFINE_PRODUCT_OFFER_ITEM_URL             = 'url';
+    const DEFINE_PRODUCT_OFFER_ITEM_AVAILABILITY    = 'availability';
 
     /**
      * @var Registry
@@ -50,12 +64,20 @@ class ProductType extends AbstractType
     protected $store;
 
     /**
-     * ProductType constructor
+     * @var ConfigurableOptionsProviderInterface
+     */
+    private $configurableOptionsProvider;
+
+    /** @var PriceResolverInterface */
+    protected $priceResolver;
+
+    /**
+     * ProductType constructor.
      *
      * @param ProductRepositoryInterface $productRepository
      * @param Registry $registry
      * @param StoreManagerInterface $store
-     * @param array $data
+     * @param $data
      */
     public function __construct(
         ProductRepositoryInterface $productRepository,
@@ -110,6 +132,11 @@ class ProductType extends AbstractType
             ->addProperty(static::DEFINE_PRODUCT_IMAGE, $this->getProductImage())
             ->addProperty(static::DEFINE_PRODUCT_DESCRIPTION, $product->getShortDescription())
             ->addProperty(static::DEFINE_PRODUCT_SKU, $product->getSku());
+        if ($this->getProduct()->getTypeId() == Configurable::TYPE_CODE) {
+            $this->addProperty(static::DEFINE_PRODUCT_OFFERS, $this->getAggregateOffer());
+        } else {
+            $this->addProperty(static::DEFINE_PRODUCT_OFFERS, $this->getOffers());
+        }
 
         return $this;
     }
@@ -150,5 +177,84 @@ class ProductType extends AbstractType
         $this->registry->register('current_product', $product);
 
         return $product;
+    }
+
+    /**
+     * Create array with product info
+     *
+     * @return array
+     */
+    protected function getOffers()
+    {
+        $offers = [static::DEFINE_TYPE_KEY => static::DEFINE_PRODUCT_OFFERS_KEY];
+        $offers[ static::DEFINE_PRODUCT_OFFERS_PRICE ] = $this->getProduct()->getPriceInfo()->getPrice('final_price'
+        )->getAmount()->getValue();
+
+        $offers[ static::DEFINE_PRODUCT_OFFERS_CURRENCY ] = $this->store->getStore()->getBaseCurrency()
+            ->getCurrencyCode();
+        $offers[ static::DEFINE_PRODUCT_OFFER_ITEM_CONDITION ] = static::DEFINE_PRODUCT_OFFER_ITEM_CONDITION_VALUE;
+        $offers[ static::DEFINE_PRODUCT_OFFER_ITEM_URL ] = $this->getProduct()->getProductUrl();
+        $offers[ static::DEFINE_PRODUCT_OFFER_ITEM_AVAILABILITY ] = $this->getProduct()->isInStock(
+            ) && $this->getProduct()->isSalable();
+
+        return $offers;
+    }
+
+    /**
+     * Create array with product info
+     *
+     * @return array
+     */
+    protected function getAggregateOffer()
+    {
+        $offers = [static::DEFINE_TYPE_KEY => static::DEFINE_PRODUCT_AGGREGATEOFFERS_KEY];
+        $offers[ static::DEFINE_PRODUCT_OFFERS_LOW_PRICE ] = $this->getLowPrice();
+        $offers[ static::DEFINE_PRODUCT_OFFERS_HIGH_PRICE ] = $this->getHighPrice();
+        $offers[ static::DEFINE_PRODUCT_OFFERS_CURRENCY ] = $this->store->getStore()->getBaseCurrency()
+            ->getCurrencyCode();
+
+        return $offers;
+    }
+
+    /**
+     * Get Lowest price
+     *
+     * @return string
+     */
+    protected function getLowPrice()
+    {
+        return number_format($this->getProduct()->getPriceInfo()->getPrice('final_price')->getAmount()->getValue(), 2);
+    }
+
+    /**
+     * Get higher price
+     *
+     * @return string
+     */
+    protected function getHighPrice()
+    {
+        $price = null;
+        foreach ($this->getConfigurableOptionsProvider()->getProducts($this->getProduct()) as $subProduct) {
+            $productPrice = $subProduct->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+            $price = $price ? max($price, $productPrice) : $productPrice;
+        }
+
+        return number_format($price, 2);
+    }
+
+    /**
+     * Get provider
+     *
+     * @return \Magento\ConfigurableProduct\Pricing\Price\ConfigurableOptionsProviderInterface
+     * @deprecated
+     */
+    protected function getConfigurableOptionsProvider()
+    {
+        if (null === $this->configurableOptionsProvider) {
+            $this->configurableOptionsProvider = ObjectManager::getInstance()
+                ->get(ConfigurableOptionsProviderInterface::class);
+        }
+
+        return $this->configurableOptionsProvider;
     }
 }
