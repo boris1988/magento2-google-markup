@@ -79,12 +79,27 @@ class JsonLd extends Template
      */
     public function getPostData()
     {
-       return $this->jsonHelper->jsonEncode(
-           [
-               'fullActionName' => $this->request->getFullActionName(),
-                'product_id' => $this->getProduct()->getId()
-           ]
-       );
+        $postData = ['fullActionName' => $this->request->getFullActionName()];
+        $postData = array_merge($postData, $this->preparePostData());
+       return $this->jsonHelper->jsonEncode($postData);
+    }
+
+    /**
+     * Add additional POST parameters
+     *
+     * @return array
+     */
+    protected function preparePostData()
+    {
+        $data = [];
+        switch ($this->request->getFullActionName()) {
+            case 'catalog_product_view':
+                $data['product_id'] = $this->getProduct()->getId();
+                break;
+
+        }
+
+        return $data;
     }
 
 }

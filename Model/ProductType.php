@@ -2,6 +2,7 @@
 
 namespace Borisperevyazko\GoogleMarkup\Model;
 
+use Borisperevyazko\GoogleMarkup\Helper\Config;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
@@ -12,7 +13,7 @@ use Magento\ConfigurableProduct\Pricing\Price\ConfigurableOptionsProviderInterfa
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Registry;
 use Magento\Framework\UrlInterface;
-
+use Magento\Review\Model\ReviewFactory;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
@@ -40,6 +41,12 @@ class ProductType extends AbstractType
     const DEFINE_PRODUCT_OFFER_ITEM_CONDITION_VALUE = 'http://schema.org/NewCondition';
     const DEFINE_PRODUCT_OFFER_ITEM_URL             = 'url';
     const DEFINE_PRODUCT_OFFER_ITEM_AVAILABILITY    = 'availability';
+    const DEFINE_PRODUCT_AGGREGATE_RATING           = 'AggregateRating';
+    const DEFINE_PRODUCT_AGGREGATE_RATING_KEY       = 'aggregateRating';
+    const DEFINE_PRODUCT_RATING_VALUE               = 'ratingValue';
+    const DEFINE_PRODUCT_RATING_COUNT               = 'reviewCount';
+    const DEFINE_OFFER_INSTOCK                      = "http://schema.org/InStock";
+    const DEFINE_OFFER_OUTSTOCK                     = "http://schema.org/OutOfStock";
 
     /**
      * @var Registry
@@ -68,28 +75,40 @@ class ProductType extends AbstractType
      */
     private $configurableOptionsProvider;
 
-    /** @var PriceResolverInterface */
+    /**
+     * @var PriceResolverInterface
+     */
     protected $priceResolver;
 
     /**
-     * ProductType constructor.
+     * @var ReviewFactory
+     */
+    protected $rewiewFactory;
+
+    /**
+     * ProductType constructor
      *
      * @param ProductRepositoryInterface $productRepository
      * @param Registry $registry
      * @param StoreManagerInterface $store
+     * @param ReviewFactory $reviewFactory
+     * @param Config $config
      * @param $data
      */
     public function __construct(
         ProductRepositoryInterface $productRepository,
         Registry $registry,
         StoreManagerInterface $store,
+        ReviewFactory $reviewFactory,
+        Config $config,
         $data
     ) {
-        parent::__construct();
+        parent::__construct($config);
         $this->addType();
         $this->registry = $registry;
         $this->productRepository = $productRepository;
         $this->store = $store;
+        $this->rewiewFactory = $reviewFactory;
         if (isset($data['product_id'])) {
             $this->loadProduct($data['product_id']);
         }
@@ -126,16 +145,18 @@ class ProductType extends AbstractType
         if (!$product) {
             return $this;
         }
-        $this->addProperty(parent::DEFINE_CONTEXT_KEY, $this->getContext())
-            ->addProperty(parent::DEFINE_TYPE_KEY, $this->getType())
+        $this->addProperty(AbstractType::DEFINE_CONTEXT_KEY, $this->getContext())
+            ->addProperty(AbstractType::DEFINE_TYPE_KEY, $this->getType())
             ->addProperty(static::DEFINE_PRODUCT_NAME, $product->getName())
             ->addProperty(static::DEFINE_PRODUCT_IMAGE, $this->getProductImage())
             ->addProperty(static::DEFINE_PRODUCT_DESCRIPTION, $product->getShortDescription())
             ->addProperty(static::DEFINE_PRODUCT_SKU, $product->getSku());
-        if ($this->getProduct()->getTypeId() == Configurable::TYPE_CODE) {
-            $this->addProperty(static::DEFINE_PRODUCT_OFFERS, $this->getAggregateOffer());
-        } else {
-            $this->addProperty(static::DEFINE_PRODUCT_OFFERS, $this->getOffers());
+
+        if ($this->configHelper->isShowOffer()) {
+            $this->createOfferProperty();
+        }
+        if ($this->configHelper->isShowAggregateRating()) {
+            $this->addProperty(static::DEFINE_PRODUCT_AGGREGATE_RATING_KEY, $this->getAggregateRating());
         }
 
         return $this;
@@ -194,8 +215,7 @@ class ProductType extends AbstractType
             ->getCurrencyCode();
         $offers[ static::DEFINE_PRODUCT_OFFER_ITEM_CONDITION ] = static::DEFINE_PRODUCT_OFFER_ITEM_CONDITION_VALUE;
         $offers[ static::DEFINE_PRODUCT_OFFER_ITEM_URL ] = $this->getProduct()->getProductUrl();
-        $offers[ static::DEFINE_PRODUCT_OFFER_ITEM_AVAILABILITY ] = $this->getProduct()->isInStock(
-            ) && $this->getProduct()->isSalable();
+        $offers[ static::DEFINE_PRODUCT_OFFER_ITEM_AVAILABILITY ] = $this->getAvailability();
 
         return $offers;
     }
@@ -214,6 +234,26 @@ class ProductType extends AbstractType
             ->getCurrencyCode();
 
         return $offers;
+    }
+
+    /**
+     * Get aggregate rating
+     *
+     * @return array
+     */
+    protected function getAggregateRating()
+    {
+        $rating = [static::DEFINE_TYPE_KEY => static::DEFINE_PRODUCT_AGGREGATE_RATING];
+        $this->rewiewFactory->create()->getEntitySummary($this->getProduct(), $this->store->getStore()->getId());
+        $ratingSummary = $this->getProduct()->getRatingSummary();
+        if (null === $ratingSummary) {
+            return [];
+        }
+        $percentValue = number_format(($ratingSummary->getRatingSummary() * 5 / 100), 1);
+        $rating[ static::DEFINE_PRODUCT_RATING_VALUE ] = $percentValue;
+        $rating[ static::DEFINE_PRODUCT_RATING_COUNT ] = $ratingSummary->getReviewsCount();
+
+        return $rating;
     }
 
     /**
@@ -243,6 +283,18 @@ class ProductType extends AbstractType
     }
 
     /**
+     * Get product Availability
+     *
+     * @return string
+     */
+    protected function getAvailability()
+    {
+        return $this->getProduct()->isInStock() && $this->getProduct()->isSalable()
+            ? static::DEFINE_OFFER_INSTOCK
+            : static::DEFINE_OFFER_OUTSTOCK;
+    }
+
+    /**
      * Get provider
      *
      * @return \Magento\ConfigurableProduct\Pricing\Price\ConfigurableOptionsProviderInterface
@@ -256,5 +308,21 @@ class ProductType extends AbstractType
         }
 
         return $this->configurableOptionsProvider;
+    }
+
+    /**
+     * Create Offer property
+     *
+     * @return $this
+     */
+    protected function createOfferProperty()
+    {
+        if ($this->getProduct()->getTypeId() == Configurable::TYPE_CODE) {
+            $this->addProperty(static::DEFINE_PRODUCT_OFFERS, $this->getAggregateOffer());
+        } else {
+            $this->addProperty(static::DEFINE_PRODUCT_OFFERS, $this->getOffers());
+        }
+
+        return $this;
     }
 }

@@ -3,6 +3,7 @@
 namespace Borisperevyazko\GoogleMarkup\Model;
 
 use Borisperevyazko\GoogleMarkup\Api\JsonLdTypeInterface;
+use Borisperevyazko\GoogleMarkup\Helper\Config;
 
 /**
  * Class AbstractType
@@ -32,11 +33,20 @@ abstract class AbstractType implements JsonLdTypeInterface
     protected $properties;
 
     /**
-     * AbstractType constructor
+     * @var Config
      */
-    public function __construct()
-    {
+    protected $configHelper;
+
+    /**
+     * AbstractType constructor
+     *
+     * @param Config $config
+     */
+    public function __construct(
+        Config $config
+    ) {
         $this->addContext();
+        $this->configHelper = $config;
     }
 
     /**

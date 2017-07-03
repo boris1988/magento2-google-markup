@@ -6,6 +6,10 @@
             <general>
                 <enable>1</enable>
             </general>
+            <product>
+                <show_offer>1</show_offer>
+                <show_rating>1</show_rating>
+            </product>
         </borisperevyazko_googlemarkup>
     </default>
 </config>

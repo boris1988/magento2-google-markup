@@ -4,7 +4,7 @@
         <tab id="borisperevyazko" translate="label" sortOrder="1000">
             <label>borisperevyazko</label>
         </tab>
-        <section id="borisperevyazko_googlemarkup" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+        <section id="borisperevyazko_googlemarkup" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Google Markup</label>
             <tab>borisperevyazko</tab>
             <resource>Borisperevyazko_GoogleMarkup::config</resource>
@@ -12,6 +12,17 @@
                 <label>General</label>
                 <field id="enable" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="product" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Product Page</label>
+                <field id="show_offer" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Offer</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="show_rating" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show aggregate rating</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
