@@ -2,7 +2,7 @@
   "name": "borisperevyazko/module-google-markup",
   "description": "Insert google markup into site",
   "type": "magento2-module",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "authors": [
     {
       "name": "Boris Perevyazko",
