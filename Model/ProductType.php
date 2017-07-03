@@ -246,7 +246,11 @@ class ProductType extends AbstractType
         $rating = [static::DEFINE_TYPE_KEY => static::DEFINE_PRODUCT_AGGREGATE_RATING];
         $this->rewiewFactory->create()->getEntitySummary($this->getProduct(), $this->store->getStore()->getId());
         $ratingSummary = $this->getProduct()->getRatingSummary();
-        if (null === $ratingSummary) {
+        if (null === $ratingSummary ) {
+            return [];
+        }
+
+        if ($ratingSummary->getReviewsCount() == 0) {
             return [];
         }
         $percentValue = number_format(($ratingSummary->getRatingSummary() * 5 / 100), 1);
