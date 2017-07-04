@@ -37,6 +37,7 @@ class ProductType extends AbstractType
     const DEFINE_PRODUCT_OFFERS_LOW_PRICE           = 'lowPrice';
     const DEFINE_PRODUCT_OFFERS_HIGH_PRICE          = 'highPrice';
     const DEFINE_PRODUCT_OFFERS_CURRENCY            = 'priceCurrency';
+    const DEFINE_PRODUCT_OFFER_COUNT                = 'offerCount';
     const DEFINE_PRODUCT_OFFER_ITEM_CONDITION       = 'itemCondition';
     const DEFINE_PRODUCT_OFFER_ITEM_CONDITION_VALUE = 'http://schema.org/NewCondition';
     const DEFINE_PRODUCT_OFFER_ITEM_URL             = 'url';
