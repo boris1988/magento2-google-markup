@@ -23,7 +23,11 @@ use Magento\Store\Model\StoreManagerInterface;
  */
 class ProductType extends AbstractType
 {
-
+    /**#@+
+     * Define properties constants
+     *
+     * @var string
+     */
     const DEFINE_TYPE                               = 'Product';
     const DEFINE_PRODUCT_NAME                       = 'name';
     const DEFINE_PRODUCT_DESCRIPTION                = 'description';
@@ -47,7 +51,8 @@ class ProductType extends AbstractType
     const DEFINE_PRODUCT_RATING_COUNT               = 'reviewCount';
     const DEFINE_OFFER_INSTOCK                      = "http://schema.org/InStock";
     const DEFINE_OFFER_OUTSTOCK                     = "http://schema.org/OutOfStock";
-
+    /**#@-*/
+    
     /**
      * @var Registry
      */

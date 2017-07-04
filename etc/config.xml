@@ -10,6 +10,9 @@
                 <show_offer>1</show_offer>
                 <show_rating>1</show_rating>
             </product>
+            <website>
+                <enable_searchbox>0</enable_searchbox>
+            </website>
         </borisperevyazko_googlemarkup>
     </default>
 </config>

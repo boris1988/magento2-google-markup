@@ -52,6 +52,12 @@ class MarkupRepository implements MarkupRepositoryInterface
                 );
                 break;
 
+            case 'cms_index_index':
+                $jsonLd = $this->_objectManager->create('Borisperevyazko\GoogleMarkup\Model\WebsiteType',
+                    ['data' => $this->request->getPostValue()]
+                );
+                break;
+
             default:
                 $jsonLd = null;
         }
